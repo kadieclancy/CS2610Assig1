@@ -256,7 +256,7 @@ public class Keyboard{
                     Character keyName = pressedKey.getText().charAt(0);
                     if (nextChars.contains(keyName))
                     {
-                        pressedKey.setBackground(Color.red);
+                        pressedKey.setBackground(Color.green);
                     }
                 }
             }
@@ -289,11 +289,25 @@ public class Keyboard{
 			if (n > 2)
 			{
 				ArrayList<Character> intermediateList = new ArrayList<Character>();
+				int IndexToStartFrom = -1;
+				ArrayList<Character> firstCharChildren = trie.getCharChildren(swipedKeys.get(0).toString());
 				for (int i = 1; i < n - 1; i++)
 				{
-					intermediateList.add(swipedKeys.get(i));
+					if(firstCharChildren.contains(swipedKeys.get(i)))
+					{
+						IndexToStartFrom = i;
+						break;
+					}
+
 				}
-				ArrayList<ArrayList<Character>> allCombs = GetAllCombination(intermediateList, n - 2);//, r);
+				if (IndexToStartFrom != -1)
+				{
+					for (int i = IndexToStartFrom; i < n - 1; i++)
+					{
+						intermediateList.add(swipedKeys.get(i));
+					}
+				}
+				ArrayList<ArrayList<Character>> allCombs = GetAllCombination(intermediateList, intermediateList.size());//, r);
 
 				PriorityQueue<Word> expectedWords = new PriorityQueue<Word>();
 				Character FirstChar = swipedKeys.get(0);
@@ -396,7 +410,12 @@ public class Keyboard{
 		ArrayList<ArrayList<Character>> GetAllCombination(ArrayList<Character> arr, int n)//, int r)
 		{
 			ArrayList<ArrayList<Character>> allCombs = new ArrayList<ArrayList<Character>>();
-			for (int r = 1; r <= arr.size(); r++)
+			int Threshold = arr.size();
+			if (arr.size() > 7)
+			{
+				Threshold = 7;
+			}
+			for (int r = 1; r <= Threshold; r++)
 			{
 				// A temporary array to store all combination one by one
 				ArrayList<Character> data = new ArrayList<Character>();
