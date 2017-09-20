@@ -1,6 +1,6 @@
 /*
  * Sample code for CS 2610 Homework 1
- * 
+ *
  */
 
 import java.io.File;
@@ -14,19 +14,19 @@ public class Dictionary {
 
 	public Dictionary() throws FileNotFoundException {
 		System.out.println("Loading dictionary...");
-		
+
 		wtable = new ArrayList<String>();
 		ftable = new ArrayList<Integer>();
-		Scanner input = new Scanner(new File("./wordf.txt"));
+		Scanner input = new Scanner(new File("../wordf.txt"));
 		String buffer = new String("");
-		
-		while(input.hasNext()){	
+
+		while(input.hasNext()){
 			buffer = input.nextLine();
 			Scanner scan = new Scanner(buffer).useDelimiter(",");
 			wtable.add(scan.next());
 			ftable.add(scan.nextInt());
 		}
-		
+
 		input.close();
 		System.out.println("Dictionary Loaded.");
 	}

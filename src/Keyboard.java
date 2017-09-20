@@ -1,9 +1,9 @@
 /*
  * Sample code for CS 2610 Homework 1
- * 
+ *
  */
 
-import javax.swing.*;        
+import javax.swing.*;
 import javax.swing.border.Border;
 
 import java.awt.*;
@@ -16,14 +16,16 @@ import java.awt.geom.Point2D;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Collections.*;
+import java.util.PriorityQueue;
 public class Keyboard{
-	
+
 	JFrame window;
 	Key[] keys;
 	JPanel board; //for loading buttons
 	JTextField input;
 	JLabel outputdisplay;
 	Container panel;
+	JPanel suggestedWords;
 	MouseListener mouselistener;
     HashMap<Character, Integer> swipedKeysTime = new HashMap<Character, Integer>();
     ArrayList<Character> swipedKeys = new ArrayList<Character>();
@@ -39,18 +41,18 @@ public class Keyboard{
 				e.printStackTrace();
 			}
 		}
-		
+
 		mouselistener = new MouseListener();
 		window = new JFrame("keyboard");
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setSize(600,400);
-		
+
 		//set the keyboard pad layout
 		board = new JPanel();
 		Border border = BorderFactory.createEmptyBorder(0,10,20,10);
 		board.setBorder(border);
 		//infomation display
-		
+
 		input = new JTextField("A QUICK BROWN FOX JUMPS OVER THE LAZY DOG");
 		input.setFont(new Font("Serif", Font.PLAIN, 16));
 		input.setBackground(new Color(237,237,237));
@@ -62,8 +64,9 @@ public class Keyboard{
 		Border border3 = BorderFactory.createCompoundBorder(border2, bevel);
 		Border border4 = BorderFactory.createCompoundBorder(border3, title);
 		input.setBorder(BorderFactory.createCompoundBorder(border4, border1));
-		
+
 		//modify input sample border
+		suggestedWords = new JPanel();
 		outputdisplay = new JLabel("_");
 		Border title2 = BorderFactory.createTitledBorder("Output: ");
 		Border border5 = BorderFactory.createEmptyBorder(20,10,20,10);
@@ -72,7 +75,13 @@ public class Keyboard{
 		outputdisplay.setBorder(BorderFactory.createCompoundBorder(border5,border7));
 		outputdisplay.setForeground(Color.blue);
 		outputdisplay.setFont(new Font("Serif", Font.PLAIN, 16));
-		
+
+		Border title3 = BorderFactory.createTitledBorder("Suggeted Words: ");
+		Border border8 = BorderFactory.createCompoundBorder(title3,border6);
+		suggestedWords.setBorder(BorderFactory.createCompoundBorder(border5,border8));
+		suggestedWords.setForeground(Color.blue);
+		suggestedWords.setFont(new Font("Serif", Font.PLAIN, 16));
+
 		board.setLayout(new GridBagLayout());
 		//set the buttons:
 		int[] keyNum =  {10,9,7};
@@ -91,7 +100,7 @@ public class Keyboard{
 			addKey(board,keys[index],i+1,0,1,1);
             index++;
 		}
-		
+
 		//second line
 		for (int i = 0; i < keyNum[1]; i++){ //second line of keys
 			String label = keyLabels[1].substring(i, i+1);
@@ -103,7 +112,7 @@ public class Keyboard{
 			addKey(board,keys[index],i+1,1,1,1);
             index++;
 		}
-		
+
 		for (int i = 0;i< keyNum[2]; i++){ //third line of keys
 			String label = keyLabels[2].substring(i, i+1);
 			keys[index] = new Key(label);
@@ -114,7 +123,7 @@ public class Keyboard{
 			addKey(board,keys[index],i+2,2,1,1);
             index++;
 		}
-		
+
 		//set the space button
 		keys[26] = new Key(" ");
 		keys[26].setName(" ");
@@ -135,33 +144,40 @@ public class Keyboard{
 		//use gridBag layout
 		panel.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
-		
+
 		c.gridx = 0;
 		c.gridy = 0;
 		c.anchor= GridBagConstraints.CENTER;
 		c.fill = GridBagConstraints.BOTH;
 		c.insets = new Insets(5,5,5,5);
 		panel.add(input,c);
-		
+
 		c.gridx = 0;
 		c.gridy = 1;
 		c.anchor=GridBagConstraints.CENTER;
 		c.fill = GridBagConstraints.BOTH;
 		c.insets = new Insets(5,5,5,5);
-		panel.add(outputdisplay,c);
-		
+		panel.add(suggestedWords,c);
+
 		c.gridx = 0;
 		c.gridy = 2;
+		c.anchor=GridBagConstraints.CENTER;
+		c.fill = GridBagConstraints.BOTH;
+		c.insets = new Insets(5,5,5,5);
+		panel.add(outputdisplay,c);
+
+		c.gridx = 0;
+		c.gridy = 3;
 		c.gridheight = 4;
 		c.anchor=GridBagConstraints.CENTER;
 		c.fill = GridBagConstraints.BOTH;
 		c.insets = new Insets(10,10,10,10);
 		panel.add(board,c);
-        
+
 		window.pack();// adjust the window size
 		window.setVisible(true);
-	}	
-	
+	}
+
 	public void addKey(Container container, Component component, int gridx, int gridy, int gridwidth, int gridheight){
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = gridx;
@@ -176,20 +192,21 @@ public class Keyboard{
         component.setBackground(Color.white);
 		container.add(component, c);
 	}
-	
+
 	class MouseListener extends MouseAdapter implements MouseMotionListener{
 		boolean tracing;			// whether the input method is button clicking or tracing
 		ArrayList<Key> tracelist;	// a list to store all buttons on the trace
 		Key curKey;
-		
+
 		MouseListener() throws FileNotFoundException{
 			super();
 			tracing = false;
 			tracelist = new ArrayList<Key>();
 			curKey = new Key("");
 		}
-		
+
 		private void updateOutput (Key theEventer){
+			suggestedWords.removeAll();
             for(Key pressedKey: keys)
             {
                 if (pressedKey == null)
@@ -244,20 +261,21 @@ public class Keyboard{
                 }
             }
 		}
-		
+
 		private void recoverState(){
 			//when mouse is released, tracing is ended. reset the letter state in the tmptlist
 			//change status
+			suggestedWords.removeAll();
 			decideWordAfterSwipe();
             swipedKeys.clear();
             swipedKeysTime.clear();
 			while (!tracelist.isEmpty()){
 				Key e = tracelist.get(0);
-				
+
 				e.LineList.clear();
 				e.PointList.clear();
 				e.repaint();
-				tracelist.remove(0);	
+				tracelist.remove(0);
 			}
 		}
 
@@ -277,14 +295,14 @@ public class Keyboard{
 				}
 				ArrayList<ArrayList<Character>> allCombs = GetAllCombination(intermediateList, n - 2);//, r);
 
-				HashMap<String, Integer> expectedWords = new HashMap<String, Integer>();
+				PriorityQueue<Word> expectedWords = new PriorityQueue<Word>();
 				Character FirstChar = swipedKeys.get(0);
 				Character LastChar = swipedKeys.get(n - 1);
 				String FirstWord = FirstChar.toString() + LastChar.toString();
 				if (FirstWord.equals(trie.getMatchingPrefix(FirstWord)))
 				{
 					Integer wordVal = swipedKeysTime.get(FirstChar) + swipedKeysTime.get(LastChar);
-					expectedWords.put(FirstWord, wordVal);
+					expectedWords.add(new Word(FirstWord, wordVal));
 				}
 
 				for (ArrayList<Character> currentComb : allCombs)
@@ -304,20 +322,34 @@ public class Keyboard{
 						{
 							wordVal += swipedKeysTime.get(currentChr);
 						}
-						expectedWords.put(currentWord.toString(), wordVal);
+						expectedWords.add(new Word(currentWord.toString(), wordVal));
 					}
 				}
-				Integer maxVal = 0;
-				String maxStr = "";
-				for(String StrKey : expectedWords.keySet())
-				{
-					if(expectedWords.get(StrKey) > maxVal)
-					{
-						maxVal = expectedWords.get(StrKey);
-						maxStr = StrKey;
-					}
+				finalWord = expectedWords.poll().word;
+				
+				while(expectedWords.size() > 0){
+					JButton current = new JButton(expectedWords.poll().word);
+					current.addActionListener(new ActionListener(){
+						public void actionPerformed(ActionEvent e){
+							String buttonText = current.getText();
+							String oldString = outputdisplay.getText();
+							int index = oldString.lastIndexOf(" ");
+							if(index > 0){
+								oldString = oldString.substring(0, index);
+								index = oldString.lastIndexOf(" ");
+								if(index > 0){
+									oldString = oldString.substring(0, index) + " ";
+								}
+								else{
+									oldString = "";
+								}
+							}
+							outputdisplay.setText(oldString + buttonText + " _");
+							suggestedWords.removeAll();
+						}
+					});
+					suggestedWords.add(current);
 				}
-				finalWord = maxStr;
 			}
 			else
 			{
@@ -433,7 +465,7 @@ public class Keyboard{
                 curKey.repaint();
             }
         }
-		
+
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			// TODO Auto-generated method stub
@@ -447,7 +479,7 @@ public class Keyboard{
 				curKey = theEventer;
 				tracelist.add(theEventer);
 				theEventer.setFocusPainted(true);
-				
+
 	            //start the mouse trace in this button
 	            theEventer.PointList.add(e.getPoint());
 			}
@@ -458,19 +490,19 @@ public class Keyboard{
 			// TODO Auto-generated method stub
 			if(tracing){
 				Key theEventer = (Key) e.getSource();
-				theEventer.setFocusPainted(false); 
+				theEventer.setFocusPainted(false);
                 theEventer.LineList.add(theEventer.PointList);
-                theEventer.PointList = new ArrayList<Point>(); 
+                theEventer.PointList = new ArrayList<Point>();
 			}
 		}
-		
+
 		@Override
 		public void mousePressed(MouseEvent e) {
 			// TODO Auto-generated method stub
 			Key theEventer = (Key) e.getSource();
 			theEventer.setFocusPainted(true);
 		}
-		
+
 		@Override
 		public void mouseReleased(MouseEvent e) {
 			// TODO Auto-generated method stub
@@ -516,7 +548,7 @@ public class Keyboard{
 			}
 		}
 	}
-	    
+
 	public static void main(String[] args) throws FileNotFoundException {
         dict = new Dictionary();
         trie = new TrieClass();
