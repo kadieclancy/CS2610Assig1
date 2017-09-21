@@ -28,6 +28,8 @@ public class Keyboard{
 	JPanel suggestedWords;
 	MouseListener mouselistener;
 
+	Color oldValue = Color.white;
+
 	private static boolean USE_CROSS_PLATFORM_UI = true;
     static Dictionary dict;
     static TrieClass trie;
@@ -365,6 +367,12 @@ public class Keyboard{
 	            //start the mouse trace in this button
 	            theEventer.PointList.add(e.getPoint());
 			}
+			else
+			{
+				Key theEventer = (Key) e.getSource();
+				oldValue = theEventer.getBackground();
+				theEventer.setBackground(Color.red);
+			}
 		}
 
 		@Override
@@ -375,6 +383,11 @@ public class Keyboard{
 				theEventer.setFocusPainted(false);
                 theEventer.LineList.add(theEventer.PointList);
                 theEventer.PointList = new ArrayList<Point>();
+			}
+			else
+			{
+				Key theEventer = (Key) e.getSource();
+				theEventer.setBackground(oldValue);
 			}
 		}
 
