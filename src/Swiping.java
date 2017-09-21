@@ -102,7 +102,6 @@ public class Swiping
             Character FirstChar = swipedKeys.get(0);
             Character LastChar = swipedKeys.get(n - 1);
             finalWord = FirstChar.toString() + LastChar.toString();
-
         }
 
         return finalWord;

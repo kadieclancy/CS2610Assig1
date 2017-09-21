@@ -83,9 +83,9 @@ public class Keyboard{
 
 		board.setLayout(new GridBagLayout());
 		//set the buttons:
-		int[] keyNum =  {10,10,7};
-		keys = new Key[29];
-		String[] keyLabels ={"QWERTYUIOP","ASDFGHJKL<","ZXCVBNM"}; //change to keyboard setting
+		int[] keyNum =  {10,9,7};
+		keys = new Key[28];
+		String[] keyLabels ={"QWERTYUIOP","ASDFGHJKL","ZXCVBNM"}; //change to keyboard setting
 
         int index = 0;
 		//first line
@@ -229,21 +229,6 @@ public class Keyboard{
                     newString = oldString.substring(0, oldString.length() - 2) + "_";
                 }
                 outputdisplay.setText(newString);
-            }
-            // word undo
-            else if (theChar.equals("<"))
-            {
-                String oldString = outputdisplay.getText();
-                if(oldString.contains(" "))
-                {
-                    int index = oldString.lastIndexOf(" ");
-                    newString = oldString.substring(0, index) + "_";
-                    outputdisplay.setText(newString);
-                }
-                else
-                {
-                    outputdisplay.setText("_");
-                }
             }
             else
             {
