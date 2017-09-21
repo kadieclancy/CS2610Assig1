@@ -17,7 +17,7 @@ public class Dictionary {
 
 		wtable = new ArrayList<String>();
 		ftable = new ArrayList<Integer>();
-		Scanner input = new Scanner(new File("../wordf.txt"));
+		Scanner input = new Scanner(new File("./wordf.txt"));
 		String buffer = new String("");
 
 		while(input.hasNext()){

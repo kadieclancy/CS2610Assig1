@@ -27,12 +27,11 @@ public class Keyboard{
 	Container panel;
 	JPanel suggestedWords;
 	MouseListener mouselistener;
-    HashMap<Character, Integer> swipedKeysTime = new HashMap<Character, Integer>();
-    ArrayList<Character> swipedKeys = new ArrayList<Character>();
+
 	private static boolean USE_CROSS_PLATFORM_UI = true;
     static Dictionary dict;
     static TrieClass trie;
-
+	static Swiping swiper;
 	public Keyboard() throws FileNotFoundException{
 		if(USE_CROSS_PLATFORM_UI) {
 			try {
@@ -266,9 +265,46 @@ public class Keyboard{
 			//when mouse is released, tracing is ended. reset the letter state in the tmptlist
 			//change status
 			suggestedWords.removeAll();
-			decideWordAfterSwipe();
-            swipedKeys.clear();
-            swipedKeysTime.clear();
+
+			PriorityQueue<Word> expectedWords = new PriorityQueue<Word>();
+			String finalWord = swiper.decideWordAfterSwipe(expectedWords);
+
+			while (expectedWords.size() > 0)
+			{
+				JButton current = new JButton(expectedWords.poll().word);
+				current.addActionListener(new ActionListener()
+				{
+					public void actionPerformed(ActionEvent e)
+					{
+						String buttonText = current.getText();
+						String oldString = outputdisplay.getText();
+						int index = oldString.lastIndexOf(" ");
+						if (index > 0)
+						{
+							oldString = oldString.substring(0, index);
+							index = oldString.lastIndexOf(" ");
+							if (index > 0)
+							{
+								oldString = oldString.substring(0, index) + " ";
+							}
+							else
+							{
+								oldString = "";
+							}
+						}
+						outputdisplay.setText(oldString + buttonText + " _");
+						suggestedWords.removeAll();
+					}
+				});
+				suggestedWords.add(current);
+			}
+			String newString;
+			String oldString = outputdisplay.getText();
+			newString = oldString.substring(0, oldString.length() - 1) + finalWord + " _";
+			outputdisplay.setText(newString);
+
+			swiper.swipedKeys.clear();
+			swiper.swipedKeysTime.clear();
 			while (!tracelist.isEmpty()){
 				Key e = tracelist.get(0);
 
@@ -279,156 +315,9 @@ public class Keyboard{
 			}
 		}
 
-		private void decideWordAfterSwipe()
-		{
-			ArrayList<Character> currenChildren = trie.getCharChildren("");
-			int index = 0;
-			String finalWord = "";
-
-			int n = swipedKeys.size();
-			if (n > 2)
-			{
-				ArrayList<Character> intermediateList = new ArrayList<Character>();
-				int IndexToStartFrom = -1;
-				ArrayList<Character> firstCharChildren = trie.getCharChildren(swipedKeys.get(0).toString());
-				for (int i = 1; i < n - 1; i++)
-				{
-					if(firstCharChildren.contains(swipedKeys.get(i)))
-					{
-						IndexToStartFrom = i;
-						break;
-					}
-
-				}
-				if (IndexToStartFrom != -1)
-				{
-					for (int i = IndexToStartFrom; i < n - 1; i++)
-					{
-						intermediateList.add(swipedKeys.get(i));
-					}
-				}
-				ArrayList<ArrayList<Character>> allCombs = GetAllCombination(intermediateList, intermediateList.size());//, r);
-
-				PriorityQueue<Word> expectedWords = new PriorityQueue<Word>();
-				Character FirstChar = swipedKeys.get(0);
-				Character LastChar = swipedKeys.get(n - 1);
-				String FirstWord = FirstChar.toString() + LastChar.toString();
-				if (FirstWord.equals(trie.getMatchingPrefix(FirstWord)))
-				{
-					Integer wordVal = swipedKeysTime.get(FirstChar) + swipedKeysTime.get(LastChar);
-					expectedWords.add(new Word(FirstWord, wordVal));
-				}
-
-				for (ArrayList<Character> currentComb : allCombs)
-				{
-					StringBuilder currentWord = new StringBuilder();
-					currentWord.append(FirstChar);
-					for (Character currentChr : currentComb)
-					{
-						currentWord.append(currentChr);
-					}
-					currentWord.append(LastChar);
-					if (currentWord.toString().equals(trie.getMatchingPrefix(currentWord.toString())))
-					{
-						Integer wordVal = 0;
-						wordVal = swipedKeysTime.get(FirstChar) + swipedKeysTime.get(LastChar);
-						for (Character currentChr : currentComb)
-						{
-							wordVal += swipedKeysTime.get(currentChr);
-						}
-						expectedWords.add(new Word(currentWord.toString(), wordVal));
-					}
-				}
-				finalWord = expectedWords.poll().word;
-				
-				while(expectedWords.size() > 0){
-					JButton current = new JButton(expectedWords.poll().word);
-					current.addActionListener(new ActionListener(){
-						public void actionPerformed(ActionEvent e){
-							String buttonText = current.getText();
-							String oldString = outputdisplay.getText();
-							int index = oldString.lastIndexOf(" ");
-							if(index > 0){
-								oldString = oldString.substring(0, index);
-								index = oldString.lastIndexOf(" ");
-								if(index > 0){
-									oldString = oldString.substring(0, index) + " ";
-								}
-								else{
-									oldString = "";
-								}
-							}
-							outputdisplay.setText(oldString + buttonText + " _");
-							suggestedWords.removeAll();
-						}
-					});
-					suggestedWords.add(current);
-				}
-			}
-			else
-			{
-				Character FirstChar = swipedKeys.get(0);
-				Character LastChar = swipedKeys.get(n - 1);
-				finalWord = FirstChar.toString() + LastChar.toString();
-
-			}
-
-			//String finalWord = trie.getMatchingPrefix(expectedWord.toString());
-			String newString;
-			String oldString = outputdisplay.getText();
-			newString = oldString.substring(0, oldString.length() - 1) + finalWord + " _";
-			outputdisplay.setText(newString);
-		}
-
-		void combinationUtil(ArrayList<Character> arr, ArrayList<Character> data, int start,
-							 int end, int index, int r,ArrayList<ArrayList<Character>> ALLComb)
-		{
-			// Current combination is ready to be printed, print it
-			if (index == r)
-			{
-				ArrayList<Character> currentArr = new ArrayList<Character>();
-				for (int j=0; j<r; j++)
-				{
-					currentArr.add(data.get(j));
-					//System.out.print(data.get(j) + " ");
-
-				}
-				ALLComb.add(currentArr);
-				//System.out.println("");
-				return;
-			}
-
-			for (int i=start; i<=end && end-i+1 >= r-index; i++)
-			{
-				data.set(index,arr.get(i));
-				combinationUtil(arr, data, i+1, end, index+1, r,ALLComb);
-			}
-		}
-
 		// The main function that prints all combinations of size r
 		// in arr[] of size n. This function mainly uses combinationUtil()
-		ArrayList<ArrayList<Character>> GetAllCombination(ArrayList<Character> arr, int n)//, int r)
-		{
-			ArrayList<ArrayList<Character>> allCombs = new ArrayList<ArrayList<Character>>();
-			int Threshold = arr.size();
-			if (arr.size() > 7)
-			{
-				Threshold = 7;
-			}
-			for (int r = 1; r <= Threshold; r++)
-			{
-				// A temporary array to store all combination one by one
-				ArrayList<Character> data = new ArrayList<Character>();
-				for (int i = 0; i < r; i++)
-				{
-					data.add(' ');
-				}
 
-				// Print all combination using temprary array 'data[]'
-				combinationUtil(arr, data, 0, n - 1, 0, r, allCombs);
-			}
-			return allCombs;
-		}
 		@Override
 		public void mouseDragged(MouseEvent e)
         {
@@ -451,33 +340,7 @@ public class Keyboard{
                 //System.out.println("Mouse position:(" + (curKey.getX() + x) + "," + (curKey.getY() + y) + "), In key " + curKey.getText() + ".");
                 if (curKey.getText().charAt(0) != ' ')
                 {
-					if(swipedKeys.size() > 0)
-					{
-						Character LastChar = swipedKeys.get(swipedKeys.size() - 1);
-						Character CurrentChar = curKey.getText().charAt(0);
-						if(LastChar.equals(CurrentChar))
-						{
-
-						}
-						else
-						{
-							swipedKeys.add(curKey.getText().charAt(0));
-							swipedKeysTime.put(curKey.getText().charAt(0),1);
-						}
-
-					}
-                    if (swipedKeysTime.containsKey(curKey.getText().charAt(0)) && swipedKeys.get(swipedKeys.size() - 1).equals(curKey.getText().charAt(0)))
-                    {
-                        Integer intCount = swipedKeysTime.get(curKey.getText().charAt(0));
-                        intCount++;
-                        swipedKeysTime.replace(curKey.getText().charAt(0),intCount);
-                    }
-                    else if(!swipedKeysTime.containsKey(curKey.getText().charAt(0)))
-                    {
-                        swipedKeysTime.put(curKey.getText().charAt(0),1);
-                        swipedKeys.add(curKey.getText().charAt(0));
-                    }
-
+					swiper.mouseMoved(curKey);
                 }
 
                 curKey.PointList.add(newPoint);
@@ -532,40 +395,14 @@ public class Keyboard{
 			} else {
 				tracing = false;
 				System.out.println("Tracing Completes. Clear all traces.");
-                for(Character keyChar : swipedKeys)
+                for(Character keyChar : swiper.swipedKeys)
                 {
-                    System.out.println(keyChar + " : " + swipedKeysTime.get(keyChar));
+                    System.out.println(keyChar + " : " + swiper.swipedKeysTime.get(keyChar));
                 }
 				recoverState();
 			}
 		}
 
-		@Override
-		public void mouseMoved(MouseEvent e)
-		{
-			if (tracing) {
-				Key theEventer = (Key) e.getSource();
-				Point2D p = e.getPoint();
-				int x = (int) p.getX() - (curKey.getX() - theEventer.getX());
-				int y = (int) p.getY() - (curKey.getY() - theEventer.getY());
-				Point newPoint = new Point(x, y);
-				//System.out.println("Mouse position:(" + (curKey.getX() + x) + "," + (curKey.getY() + y) + "), In key " + curKey.getText() + ".");
-				if (curKey.getText().charAt(0) != ' ')
-				{
-					if (swipedKeysTime.containsKey(curKey.getText().charAt(0)))
-					{
-						Integer intCount = swipedKeysTime.get(curKey.getText().charAt(0));
-						intCount++;
-						swipedKeysTime.replace(curKey.getText().charAt(0),intCount);
-					}
-					else
-					{
-						swipedKeysTime.put(curKey.getText().charAt(0),1);
-						swipedKeys.add(curKey.getText().charAt(0));
-					}
-				}
-			}
-		}
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {
@@ -576,7 +413,7 @@ public class Keyboard{
         {
             trie.insert(wordStr);
         }
-
+		swiper = new Swiping(dict, trie);
         Keyboard gui = new Keyboard();
 	}
 }
