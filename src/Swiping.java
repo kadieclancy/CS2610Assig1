@@ -3,6 +3,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.PriorityQueue;
 
 /**
@@ -71,6 +72,7 @@ public class Swiping
                 expectedWords.add(new Word(FirstWord, wordVal));
             }
 
+            HashSet<String> currentAddedWords = new HashSet<String>();
             for (ArrayList<Character> currentComb : allCombs)
             {
                 StringBuilder currentWord = new StringBuilder();
@@ -80,7 +82,7 @@ public class Swiping
                     currentWord.append(currentChr);
                 }
                 currentWord.append(LastChar);
-                if (currentWord.toString().equals(trie.getMatchingPrefix(currentWord.toString())))
+                if (!currentAddedWords.contains(currentWord.toString()) && currentWord.toString().equals(trie.getMatchingPrefix(currentWord.toString())))
                 {
                     Integer wordVal = 0;
                     wordVal = swipedKeysTime.get(FirstChar) + swipedKeysTime.get(LastChar);
@@ -89,39 +91,11 @@ public class Swiping
                         wordVal += swipedKeysTime.get(currentChr);
                     }
                     expectedWords.add(new Word(currentWord.toString(), wordVal));
+                    currentAddedWords.add(currentWord.toString());
                 }
             }
             finalWord = expectedWords.poll().word;
 
-            /*while (expectedWords.size() > 0)
-            {
-                JButton current = new JButton(expectedWords.poll().word);
-                current.addActionListener(new ActionListener()
-                {
-                    public void actionPerformed(ActionEvent e)
-                    {
-                        String buttonText = current.getText();
-                        String oldString = outputdisplay.getText();
-                        int index = oldString.lastIndexOf(" ");
-                        if (index > 0)
-                        {
-                            oldString = oldString.substring(0, index);
-                            index = oldString.lastIndexOf(" ");
-                            if (index > 0)
-                            {
-                                oldString = oldString.substring(0, index) + " ";
-                            }
-                            else
-                            {
-                                oldString = "";
-                            }
-                        }
-                        outputdisplay.setText(oldString + buttonText + " _");
-                        suggestedWords.removeAll();
-                    }
-                });
-                suggestedWords.add(current);
-            }*/
         }
         else
         {
@@ -143,9 +117,9 @@ public class Swiping
     {
         ArrayList<ArrayList<Character>> allCombs = new ArrayList<ArrayList<Character>>();
         int Threshold = arr.size();
-        if (arr.size() > 7)
+        if (arr.size() > 13)
         {
-            Threshold = 7;
+            Threshold = 13;
         }
         for (int r = 1; r <= Threshold; r++)
         {
