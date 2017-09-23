@@ -5,6 +5,10 @@
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
+import javax.swing.text.Highlighter.HighlightPainter;
+import javax.swing.text.BadLocationException;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -23,10 +27,12 @@ public class Keyboard{
 	Key[] keys;
 	JPanel board; //for loading buttons
 	JTextField input;
-	JLabel outputdisplay;
+	JTextField outputdisplay;
 	Container panel;
 	JPanel suggestedWords;
 	MouseListener mouselistener;
+	Highlighter highlighterOutput;
+	Highlighter highlighterPrompt;
 
 	Color oldValue = Color.white;
 
@@ -43,7 +49,6 @@ public class Keyboard{
 			}
 		}
 
-		mouselistener = new MouseListener();
 		window = new JFrame("keyboard");
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setSize(600,400);
@@ -68,7 +73,10 @@ public class Keyboard{
 
 		//modify input sample border
 		suggestedWords = new JPanel();
-		outputdisplay = new JLabel("_");
+		outputdisplay = new JTextField("_");
+		highlighterOutput = outputdisplay.getHighlighter();
+		highlighterPrompt = input.getHighlighter();
+		mouselistener = new MouseListener();
 		Border title2 = BorderFactory.createTitledBorder("Output: ");
 		Border border5 = BorderFactory.createEmptyBorder(20,10,20,10);
 		Border border6 = BorderFactory.createEmptyBorder(10,9,10,9);
@@ -199,11 +207,14 @@ public class Keyboard{
 		ArrayList<Key> tracelist;	// a list to store all buttons on the trace
 		Key curKey;
 
+		HighlightPainter painter;
+
 		MouseListener() throws FileNotFoundException{
 			super();
 			tracing = false;
 			tracelist = new ArrayList<Key>();
 			curKey = new Key("");
+			painter = new DefaultHighlighter.DefaultHighlightPainter(Color.yellow);
 		}
 
 		private void updateOutput (Key theEventer){
@@ -240,9 +251,38 @@ public class Keyboard{
             }
             String[] allWords = newString.split(" ");
             String currentPrefix = allWords[allWords.length-1].replace("_","");
+						int wordOffsetOutput = 0;
+						int wordOffsetPrompt = 0;
             if(currentPrefix.equals(" ") || currentPrefix.equals(""))
             {
-                return;
+							highlighterPrompt.removeAllHighlights();
+							String[] splitPrompt = input.getText().split(" ");
+							for(int i = 0; i < allWords.length-1; i++){
+								boolean[][] highlights = levDist(allWords[i], splitPrompt[i]);
+								boolean[] outputHighlights = highlights[0];
+								boolean[] promptsHighlights = highlights[1];
+								for(int j = 0; j < outputHighlights.length; j++){
+									if(outputHighlights[j]){
+										try{
+											highlighterOutput.addHighlight(j + wordOffsetOutput, j + wordOffsetOutput + 1, painter);
+										} catch (BadLocationException e) {
+											System.out.println("Bad location: " + e);
+										}
+									}
+								}
+								for(int j = 0; j < promptsHighlights.length; j++){
+									if(promptsHighlights[j]){
+										try{
+											highlighterPrompt.addHighlight(j + wordOffsetPrompt, j + wordOffsetPrompt + 1, painter);
+										} catch(BadLocationException e){
+											System.out.println("Bad location: " + e);
+										}
+									}
+								}
+								wordOffsetOutput += allWords[i].length() + 1;
+								wordOffsetPrompt += splitPrompt[i].length() + 1;
+							}
+								return;
             }
             ArrayList<Character> nextChars = trie.getCharChildren(currentPrefix);
 
@@ -261,6 +301,79 @@ public class Keyboard{
                     }
                 }
             }
+		}
+
+		public boolean[][] levDist(String input, String prompt){
+			Cell[][] A = new Cell[input.length()+1][prompt.length()+1];
+			char[] inputs = input.toCharArray();
+			char[] prompts = prompt.toCharArray();
+			for(int i = 0; i <= inputs.length; i++){
+				A[i][0] = new Cell(i, -1, -1);
+			}
+
+			for(int j = 0; j <= prompts.length; j++){
+				A[0][j] = new Cell(j, -1, -1);
+			}
+
+			for(int i = 1; i <= inputs.length; i++){
+				for(int j = 1; j <= prompts.length; j++){
+					int cost = 0;
+					if(inputs[i-1] != prompts[j-1]){
+						cost = 1;
+					}
+					int delete = A[i-1][j].value + 1;
+					int substitute = A[i-1][j-1].value + cost;
+					int add = A[i][j-1].value + 1;
+					if(delete < substitute && delete < add){
+						A[i][j] = new Cell(delete, i-1, j);
+					}
+					else if(add < delete && add < substitute){
+						A[i][j] = new Cell(add, i, j-1);
+					}
+					else{
+						A[i][j] = new Cell(substitute, i-1, j-1);
+					}
+				}
+			}
+
+			boolean[] inputHighlights = new boolean[inputs.length];
+			boolean[] promptsHighlights = new boolean[prompts.length];
+			int row = inputs.length;
+			int column = prompts.length;
+			while(row != 0 && column != 0){
+				Cell current = A[row][column];
+				int prevRow = current.prevX;
+				int prevColumn = current.prevY;
+				if(current.value != A[prevRow][prevColumn].value){
+					if(row != prevRow && column != prevColumn){
+						//Case where we did a substitution
+						inputHighlights[prevRow] = true;
+						promptsHighlights[prevColumn] = true;
+					}
+					else if(row != prevRow){
+						inputHighlights[prevRow] = true;
+					}
+					else{
+						promptsHighlights[prevColumn] = true;
+					}
+				}
+				row = prevRow;
+				column = prevColumn;
+			}
+
+			while(row != 0){
+				inputHighlights[row-1] = true;
+				row--;
+			}
+
+			while(column != 0){
+				promptsHighlights[column-1] = true;
+			}
+
+			boolean[][] highlights = new boolean[2][];
+			highlights[0] = inputHighlights;
+			highlights[1] = promptsHighlights;
+			return highlights;
 		}
 
 		private void recoverState(){
@@ -300,10 +413,6 @@ public class Keyboard{
 				});
 				suggestedWords.add(current);
 			}
-			String newString;
-			String oldString = outputdisplay.getText();
-			newString = oldString.substring(0, oldString.length() - 1) + finalWord + " _";
-			outputdisplay.setText(newString);
 
 			swiper.swipedKeys.clear();
 			swiper.swipedKeysTime.clear();
