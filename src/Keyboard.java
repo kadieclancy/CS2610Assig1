@@ -40,6 +40,8 @@ public class Keyboard{
     static Dictionary dict;
     static TrieClass trie;
 	static Swiping swiper;
+    static ArrDictionary arrDict;
+    
 	public Keyboard() throws FileNotFoundException{
 		if(USE_CROSS_PLATFORM_UI) {
 			try {
@@ -530,6 +532,8 @@ public class Keyboard{
 	public static void main(String[] args) throws FileNotFoundException {
         dict = new Dictionary();
         trie = new TrieClass();
+        arrDict = new ArrDictionary();
+        // arrDict.getLetters(char f, char l) & returns a String of the possible letters
 
         for(String wordStr : dict.wtable)
         {
