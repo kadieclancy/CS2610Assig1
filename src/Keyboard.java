@@ -97,7 +97,7 @@ public class Keyboard{
 		board.setLayout(new GridBagLayout());
 		//set the buttons:
 		int[] keyNum =  {10,9,7};
-		keys = new Key[28];
+		keys = new Key[29];
 		String[] keyLabels ={"QWERTYUIOP","ASDFGHJKL","ZXCVBNM"}; //change to keyboard setting
 
         int index = 0;
@@ -144,13 +144,21 @@ public class Keyboard{
 		keys[26].addMouseMotionListener(mouselistener);
 		addKey(board,keys[26],2,3,7,1);
 
-		//set the space button
+		//set the backspace button
 		keys[27] = new Key("<--");
 		keys[27].setName("backspace");
 		keys[27].setFocusPainted(false);
 		keys[27].addMouseListener(mouselistener);
 		keys[27].addMouseMotionListener(mouselistener);
 		addKey(board,keys[27],10,3,2,1);
+        
+        //set the word undo button
+        keys[28] = new Key("<<");
+        keys[28].setName("wordundo");
+        keys[28].setFocusPainted(false);
+        keys[28].addMouseListener(mouselistener);
+        keys[28].addMouseMotionListener(mouselistener);
+        addKey(board,keys[28],10,2,2,1);
 
 		panel = window.getContentPane();
 		//use gridBag layout
@@ -241,6 +249,19 @@ public class Keyboard{
                 else
                 {
                     newString = oldString.substring(0, oldString.length() - 2) + "_";
+                }
+                outputdisplay.setText(newString);
+            }
+            else if (theChar.equals("<<"))
+            {
+            	String oldString = outputdisplay.getText();
+                if(outputdisplay.getText().lastIndexOf(' ') == -1)
+                {
+                    newString = "_";
+                }
+                else
+                {
+                    newString = oldString.substring(0, oldString.lastIndexOf(' ')) + "_";
                 }
                 outputdisplay.setText(newString);
             }
