@@ -33,6 +33,7 @@ public class Keyboard{
 	MouseListener mouselistener;
 	Highlighter highlighterOutput;
 	Highlighter highlighterPrompt;
+	HighlightPainter painter;
 
 	Color oldValue = Color.white;
 
@@ -41,7 +42,7 @@ public class Keyboard{
     static TrieClass trie;
 	static Swiping swiper;
     static ArrDictionary arrDict;
-    
+
 	public Keyboard() throws FileNotFoundException{
 		if(USE_CROSS_PLATFORM_UI) {
 			try {
@@ -209,8 +210,6 @@ public class Keyboard{
 		ArrayList<Key> tracelist;	// a list to store all buttons on the trace
 		Key curKey;
 
-		HighlightPainter painter;
-
 		MouseListener() throws FileNotFoundException{
 			super();
 			tracing = false;
@@ -253,37 +252,9 @@ public class Keyboard{
             }
             String[] allWords = newString.split(" ");
             String currentPrefix = allWords[allWords.length-1].replace("_","");
-						int wordOffsetOutput = 0;
-						int wordOffsetPrompt = 0;
             if(currentPrefix.equals(" ") || currentPrefix.equals(""))
             {
-							highlighterPrompt.removeAllHighlights();
-							String[] splitPrompt = input.getText().split(" ");
-							for(int i = 0; i < allWords.length-1; i++){
-								boolean[][] highlights = levDist(allWords[i], splitPrompt[i]);
-								boolean[] outputHighlights = highlights[0];
-								boolean[] promptsHighlights = highlights[1];
-								for(int j = 0; j < outputHighlights.length; j++){
-									if(outputHighlights[j]){
-										try{
-											highlighterOutput.addHighlight(j + wordOffsetOutput, j + wordOffsetOutput + 1, painter);
-										} catch (BadLocationException e) {
-											System.out.println("Bad location: " + e);
-										}
-									}
-								}
-								for(int j = 0; j < promptsHighlights.length; j++){
-									if(promptsHighlights[j]){
-										try{
-											highlighterPrompt.addHighlight(j + wordOffsetPrompt, j + wordOffsetPrompt + 1, painter);
-										} catch(BadLocationException e){
-											System.out.println("Bad location: " + e);
-										}
-									}
-								}
-								wordOffsetOutput += allWords[i].length() + 1;
-								wordOffsetPrompt += splitPrompt[i].length() + 1;
-							}
+								checkWords(allWords);
 								return;
             }
             ArrayList<Character> nextChars = trie.getCharChildren(currentPrefix);
@@ -303,6 +274,38 @@ public class Keyboard{
                     }
                 }
             }
+		}
+
+		public void checkWords(String[] allWords){
+			highlighterPrompt.removeAllHighlights();
+			String[] splitPrompt = input.getText().split(" ");
+			int wordOffsetOutput = 0;
+			int wordOffsetPrompt = 0;
+			for(int i = 0; i < allWords.length-1; i++){
+				boolean[][] highlights = levDist(allWords[i], splitPrompt[i]);
+				boolean[] outputHighlights = highlights[0];
+				boolean[] promptsHighlights = highlights[1];
+				for(int j = 0; j < outputHighlights.length; j++){
+					if(outputHighlights[j]){
+						try{
+							highlighterOutput.addHighlight(j + wordOffsetOutput, j + wordOffsetOutput + 1, painter);
+						} catch (BadLocationException e) {
+							System.out.println("Bad location: " + e);
+						}
+					}
+				}
+				for(int j = 0; j < promptsHighlights.length; j++){
+					if(promptsHighlights[j]){
+						try{
+							highlighterPrompt.addHighlight(j + wordOffsetPrompt, j + wordOffsetPrompt + 1, painter);
+						} catch(BadLocationException e){
+							System.out.println("Bad location: " + e);
+						}
+					}
+				}
+				wordOffsetOutput += allWords[i].length() + 1;
+				wordOffsetPrompt += splitPrompt[i].length() + 1;
+			}
 		}
 
 		public boolean[][] levDist(String input, String prompt){
