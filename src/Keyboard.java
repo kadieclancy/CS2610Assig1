@@ -80,20 +80,24 @@ public class Keyboard{
 		highlighterOutput = outputdisplay.getHighlighter();
 		highlighterPrompt = input.getHighlighter();
 		mouselistener = new MouseListener();
+        
+		Border title3 = BorderFactory.createTitledBorder("Suggested Words: ");
 		Border title2 = BorderFactory.createTitledBorder("Output: ");
 		Border border5 = BorderFactory.createEmptyBorder(20,10,20,10);
 		Border border6 = BorderFactory.createEmptyBorder(10,9,10,9);
 		Border border7 = BorderFactory.createCompoundBorder(title2,border6);
+		Border border8 = BorderFactory.createCompoundBorder(title3,border6);
+		
 		outputdisplay.setBorder(BorderFactory.createCompoundBorder(border5,border7));
 		outputdisplay.setForeground(Color.blue);
 		outputdisplay.setFont(new Font("Serif", Font.PLAIN, 16));
-
-		Border title3 = BorderFactory.createTitledBorder("Suggeted Words: ");
-		Border border8 = BorderFactory.createCompoundBorder(title3,border6);
+		
 		suggestedWords.setBorder(BorderFactory.createCompoundBorder(border5,border8));
 		suggestedWords.setForeground(Color.blue);
 		suggestedWords.setFont(new Font("Serif", Font.PLAIN, 16));
 
+		
+        
 		board.setLayout(new GridBagLayout());
 		//set the buttons:
 		int[] keyNum =  {10,9,7};
@@ -291,7 +295,7 @@ public class Keyboard{
                     Character keyName = pressedKey.getText().charAt(0);
                     if (nextChars.contains(keyName))
                     {
-                        pressedKey.setBackground(Color.green);
+                        pressedKey.setBackground(new Color(102, 178, 225));
                     }
                 }
             }
@@ -487,7 +491,9 @@ public class Keyboard{
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			// TODO Auto-generated method stub
+			// Feedback for Key Press
+			Key theEventer = (Key) e.getSource();
+			theEventer.setBackground(new Color(165,165,165));
 		}
 
 		@Override
@@ -506,7 +512,7 @@ public class Keyboard{
 			{
 				Key theEventer = (Key) e.getSource();
 				oldValue = theEventer.getBackground();
-				theEventer.setBackground(Color.red);
+				theEventer.setBackground(new Color(210,210,210));
 			}
 		}
 
@@ -530,7 +536,8 @@ public class Keyboard{
 		public void mousePressed(MouseEvent e) {
 			// TODO Auto-generated method stub
 			Key theEventer = (Key) e.getSource();
-			theEventer.setFocusPainted(true);
+			// 	remove box around letter for key press
+			//theEventer.setFocusPainted(true);
 		}
 
 		@Override
