@@ -1,6 +1,16 @@
+import kylm.model.ngram.NgramLM;
+import kylm.model.ngram.reader.ArpaNgramReader;
+import kylm.model.ngram.reader.NgramReader;
+import kylm.model.ngram.reader.SerializedNgramReader;
+import kylm.reader.TextStreamSentenceReader;
+import kylm.util.KylmTextUtils;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,15 +23,19 @@ public class Swiping
 {
     Dictionary dict;
     TrieClass trie;
+    ArrDictionary_2 arrDict;
+    NgramLM lm = null;
 
     int discardThreshold = 8;
     public HashMap<Character, Integer> swipedKeysTime = new HashMap<Character, Integer>();
     public ArrayList<Character> swipedKeys = new ArrayList<Character>();
 
-    public Swiping(Dictionary _dict, TrieClass _trie)
+    public Swiping(Dictionary _dict, TrieClass _trie, ArrDictionary_2 _arrDict, String NgramLMPath)
     {
         dict = _dict;
         trie = _trie;
+        arrDict = _arrDict;
+        readLM(NgramLMPath);
     }
 
     public void filterChars(ArrayList<Character> allCharsSwiped)
@@ -41,6 +55,7 @@ public class Swiping
             ArrayList<Character> intermediateList = new ArrayList<Character>();
             int IndexToStartFrom = -1;
             ArrayList<Character> firstCharChildren = trie.getCharChildren(swipedKeys.get(0).toString());
+
             for (int i = 1; i < n - 1; i++)
             {
                 if (firstCharChildren.contains(swipedKeys.get(i)))
@@ -50,11 +65,12 @@ public class Swiping
                 }
 
             }
+            HashSet<Character> possibleChars = arrDict.findPossChars(swipedKeys.get(0),swipedKeys.get(n - 1));
             if (IndexToStartFrom != -1)
             {
                 for (int i = IndexToStartFrom; i < n - 1; i++)
                 {
-                    if(swipedKeysTime.get(swipedKeys.get(i)) > discardThreshold)
+                    if(swipedKeysTime.get(swipedKeys.get(i)) > discardThreshold && possibleChars.contains(swipedKeys.get(i)))
                     {
                         intermediateList.add(swipedKeys.get(i));
                     }
@@ -94,7 +110,10 @@ public class Swiping
                     currentAddedWords.add(currentWord.toString());
                 }
             }
-            finalWord = expectedWords.poll().word;
+            if(expectedWords.size() > 0)
+            {
+                finalWord = expectedWords.poll().word;
+            }
 
         }
         else
@@ -188,5 +207,30 @@ public class Swiping
             data.set(index,arr.get(i));
             combinationUtil(arr, data, i+1, end, index+1, r,ALLComb);
         }
+    }
+
+    void readLM(String path)
+    {
+        NgramReader nr = new ArpaNgramReader();
+        nr = new SerializedNgramReader();
+        try
+        {
+            lm = nr.read(path);
+            System.err.println("LM Loaded");
+        } catch (IOException e)
+        {
+            System.err.println("Problem reading model from file " + path + ": " + e.getMessage());
+            System.exit(1);
+        }
+    }
+
+    public float scoreSentence(String sentenceToScore)
+    {
+        if (lm != null)
+        {
+            float prob = lm.getSentenceProb(sentenceToScore.toLowerCase().split(" "));
+            return prob;
+        }
+        return 0;
     }
 }

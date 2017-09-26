@@ -41,7 +41,7 @@ public class Keyboard{
     static Dictionary dict;
     static TrieClass trie;
 	static Swiping swiper;
-    static ArrDictionary arrDict;
+    static ArrDictionary_2 arrDict;
 
 	public Keyboard() throws FileNotFoundException{
 		if(USE_CROSS_PLATFORM_UI) {
@@ -278,10 +278,10 @@ public class Keyboard{
             String[] allWords = newString.split(" ");
             String currentPrefix = allWords[allWords.length-1].replace("_","");
             if(currentPrefix.equals(" ") || currentPrefix.equals(""))
-            {
-								checkWords(allWords);
-								return;
-            }
+			{
+				//checkWords(allWords);
+				return;
+			}
             ArrayList<Character> nextChars = trie.getCharChildren(currentPrefix);
 
             for(Key pressedKey: keys)
@@ -302,12 +302,16 @@ public class Keyboard{
 		}
 
 		public void checkWords(String[] allWords){
+			if (allWords == null || allWords.length ==0)
+			{
+				return;
+			}
 			highlighterPrompt.removeAllHighlights();
 			String[] splitPrompt = input.getText().split(" ");
 			int wordOffsetOutput = 0;
 			int wordOffsetPrompt = 0;
 			for(int i = 0; i < allWords.length-1; i++){
-				boolean[][] highlights = levDist(allWords[i], splitPrompt[i]);
+				boolean[][] highlights = levDist(allWords[i], splitPrompt[2]);
 				boolean[] outputHighlights = highlights[0];
 				boolean[] promptsHighlights = highlights[1];
 				for(int j = 0; j < outputHighlights.length; j++){
@@ -414,6 +418,8 @@ public class Keyboard{
 			PriorityQueue<Word> expectedWords = new PriorityQueue<Word>();
 			String finalWord = swiper.decideWordAfterSwipe(expectedWords);
 
+			float SentenceScore = swiper.scoreSentence(outputdisplay.getText().replace("_","").trim() + " " + finalWord);
+
 			while (expectedWords.size() > 0)
 			{
 				JButton current = new JButton(expectedWords.poll().word);
@@ -444,6 +450,11 @@ public class Keyboard{
 				suggestedWords.add(current);
 			}
 
+			String newString;
+			String oldString = outputdisplay.getText();
+			newString = oldString.substring(0, oldString.length() - 1) + finalWord + " _";
+			outputdisplay.setText(newString);
+
 			swiper.swipedKeys.clear();
 			swiper.swipedKeysTime.clear();
 			while (!tracelist.isEmpty()){
@@ -451,8 +462,10 @@ public class Keyboard{
 
 				e.LineList.clear();
 				e.PointList.clear();
+				e.setBackground(Color.white);
 				e.repaint();
 				tracelist.remove(0);
+
 			}
 		}
 
@@ -493,6 +506,7 @@ public class Keyboard{
 		public void mouseClicked(MouseEvent e) {
 			// Feedback for Key Press
 			Key theEventer = (Key) e.getSource();
+			oldValue = theEventer.getBackground();
 			theEventer.setBackground(new Color(165,165,165));
 		}
 
@@ -563,14 +577,14 @@ public class Keyboard{
 	public static void main(String[] args) throws FileNotFoundException {
         dict = new Dictionary();
         trie = new TrieClass();
-        arrDict = new ArrDictionary();
+        arrDict = new ArrDictionary_2();
         // arrDict.getLetters(char f, char l) & returns a String of the possible letters
 
         for(String wordStr : dict.wtable)
         {
             trie.insert(wordStr);
         }
-		swiper = new Swiping(dict, trie);
+		swiper = new Swiping(dict, trie,arrDict, ".\\model_bin.bin");
         Keyboard gui = new Keyboard();
 	}
 }
