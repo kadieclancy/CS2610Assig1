@@ -13,11 +13,16 @@ public class ArrDictionary_2
 	public String[][] table = new String[28][28];
 	public HashMap<String,HashSet<Character>> PossibleChars = new HashMap<String,HashSet<Character>>();
 
-	public ArrDictionary_2() throws FileNotFoundException {
+	public ArrDictionary_2(int mode) throws FileNotFoundException {
 		int count = 0;
+        Scanner input;
 		System.out.println("Loading dictionary to array...");
-
-		Scanner input = new Scanner(new File("./wordf.txt"));
+        if (mode == 1){
+            input = new Scanner(new File("./wordTurbo.txt"));
+        }
+        else{
+            input = new Scanner(new File("./wordf.txt"));
+        }
 		String buffer = new String("");
 
 		while(input.hasNext()){

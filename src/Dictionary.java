@@ -12,12 +12,19 @@ public class Dictionary {
 	public ArrayList<String> wtable;
 	public ArrayList<Integer> ftable;
 
-	public Dictionary() throws FileNotFoundException {
+	public Dictionary(int mode) throws FileNotFoundException {
 		System.out.println("Loading dictionary...");
 
 		wtable = new ArrayList<String>();
 		ftable = new ArrayList<Integer>();
-		Scanner input = new Scanner(new File("./wordf.txt"));
+        Scanner input;
+        
+        if (mode == 1){
+            input = new Scanner(new File("./wordTurbo.txt"));
+        }
+        else{
+            input = new Scanner(new File("./wordf.txt"));
+        }
 		String buffer = new String("");
 
 		while(input.hasNext()){
