@@ -33,7 +33,7 @@ public class Keyboard{
 	MouseListener mouselistener;
 	Highlighter highlighterOutput;
 	Highlighter highlighterPrompt;
-	HighlightPainter painter;
+	HighlightPainter sub, add, delete;
 
 	Color oldValue = Color.white;
 
@@ -80,24 +80,24 @@ public class Keyboard{
 		highlighterOutput = outputdisplay.getHighlighter();
 		highlighterPrompt = input.getHighlighter();
 		mouselistener = new MouseListener();
-        
+
 		Border title3 = BorderFactory.createTitledBorder("Suggested Words: ");
 		Border title2 = BorderFactory.createTitledBorder("Output: ");
 		Border border5 = BorderFactory.createEmptyBorder(20,10,20,10);
 		Border border6 = BorderFactory.createEmptyBorder(10,9,10,9);
 		Border border7 = BorderFactory.createCompoundBorder(title2,border6);
 		Border border8 = BorderFactory.createCompoundBorder(title3,border6);
-		
+
 		outputdisplay.setBorder(BorderFactory.createCompoundBorder(border5,border7));
 		outputdisplay.setForeground(Color.blue);
 		outputdisplay.setFont(new Font("Serif", Font.PLAIN, 16));
-		
+
 		suggestedWords.setBorder(BorderFactory.createCompoundBorder(border5,border8));
 		suggestedWords.setForeground(Color.blue);
 		suggestedWords.setFont(new Font("Serif", Font.PLAIN, 16));
 
-		
-        
+
+
 		board.setLayout(new GridBagLayout());
 		//set the buttons:
 		int[] keyNum =  {10,9,7};
@@ -155,7 +155,7 @@ public class Keyboard{
 		keys[27].addMouseListener(mouselistener);
 		keys[27].addMouseMotionListener(mouselistener);
 		addKey(board,keys[27],10,3,2,1);
-        
+
         //set the word undo button
         keys[28] = new Key("<<");
         keys[28].setName("wordundo");
@@ -227,11 +227,14 @@ public class Keyboard{
 			tracing = false;
 			tracelist = new ArrayList<Key>();
 			curKey = new Key("");
-			painter = new DefaultHighlighter.DefaultHighlightPainter(Color.yellow);
+			sub = new DefaultHighlighter.DefaultHighlightPainter(Color.yellow);
+			add = new DefaultHighlighter.DefaultHighlightPainter(Color.green);
+			delete = new DefaultHighlighter.DefaultHighlightPainter(Color.red);
 		}
 
 		private void updateOutput (Key theEventer){
 			suggestedWords.removeAll();
+			window.setVisible(true);
             for(Key pressedKey: keys)
             {
                 if (pressedKey == null)
@@ -277,11 +280,11 @@ public class Keyboard{
             }
             String[] allWords = newString.split(" ");
             String currentPrefix = allWords[allWords.length-1].replace("_","");
+						checkWords(allWords);
             if(currentPrefix.equals(" ") || currentPrefix.equals(""))
-			{
-				//checkWords(allWords);
-				return;
-			}
+						{
+							return;
+						}
             ArrayList<Character> nextChars = trie.getCharChildren(currentPrefix);
 
             for(Key pressedKey: keys)
@@ -310,23 +313,41 @@ public class Keyboard{
 			String[] splitPrompt = input.getText().split(" ");
 			int wordOffsetOutput = 0;
 			int wordOffsetPrompt = 0;
-			for(int i = 0; i < allWords.length-1; i++){
-				boolean[][] highlights = levDist(allWords[i], splitPrompt[2]);
-				boolean[] outputHighlights = highlights[0];
-				boolean[] promptsHighlights = highlights[1];
+			for(int i = 0; i < allWords.length-1 && i < splitPrompt.length; i++){
+				int[][] highlights = levDist(allWords[i], splitPrompt[i]);
+				int[] outputHighlights = highlights[0];
+				int[] promptsHighlights = highlights[1];
 				for(int j = 0; j < outputHighlights.length; j++){
-					if(outputHighlights[j]){
+					if(outputHighlights[j] > 0){
 						try{
-							highlighterOutput.addHighlight(j + wordOffsetOutput, j + wordOffsetOutput + 1, painter);
+							int color = outputHighlights[j];
+							if(color == 1){
+								highlighterOutput.addHighlight(j + wordOffsetOutput, j + wordOffsetOutput + 1, sub);
+							}
+							else if(color == 2){
+								highlighterOutput.addHighlight(j + wordOffsetOutput, j + wordOffsetOutput + 1, delete);
+							}
+							else{
+								highlighterOutput.addHighlight(j + wordOffsetOutput, j + wordOffsetOutput + 1, add);
+							}
 						} catch (BadLocationException e) {
 							System.out.println("Bad location: " + e);
 						}
 					}
 				}
 				for(int j = 0; j < promptsHighlights.length; j++){
-					if(promptsHighlights[j]){
+					if(promptsHighlights[j] > 0){
 						try{
-							highlighterPrompt.addHighlight(j + wordOffsetPrompt, j + wordOffsetPrompt + 1, painter);
+							int color = promptsHighlights[j];
+							if(color == 1){
+								highlighterPrompt.addHighlight(j + wordOffsetPrompt, j + wordOffsetPrompt + 1, sub);
+							}
+							else if(color == 2){
+								highlighterPrompt.addHighlight(j + wordOffsetPrompt, j + wordOffsetPrompt + 1, delete);
+							}
+							else{
+								highlighterPrompt.addHighlight(j + wordOffsetPrompt, j + wordOffsetPrompt + 1, add);
+							}
 						} catch(BadLocationException e){
 							System.out.println("Bad location: " + e);
 						}
@@ -337,7 +358,7 @@ public class Keyboard{
 			}
 		}
 
-		public boolean[][] levDist(String input, String prompt){
+		public int[][] levDist(String input, String prompt){
 			Cell[][] A = new Cell[input.length()+1][prompt.length()+1];
 			char[] inputs = input.toCharArray();
 			char[] prompts = prompt.toCharArray();
@@ -370,8 +391,8 @@ public class Keyboard{
 				}
 			}
 
-			boolean[] inputHighlights = new boolean[inputs.length];
-			boolean[] promptsHighlights = new boolean[prompts.length];
+			int[] inputHighlights = new int[inputs.length];
+			int[] promptsHighlights = new int[prompts.length];
 			int row = inputs.length;
 			int column = prompts.length;
 			while(row != 0 && column != 0){
@@ -381,14 +402,14 @@ public class Keyboard{
 				if(current.value != A[prevRow][prevColumn].value){
 					if(row != prevRow && column != prevColumn){
 						//Case where we did a substitution
-						inputHighlights[prevRow] = true;
-						promptsHighlights[prevColumn] = true;
+						inputHighlights[prevRow] = 1;
+						promptsHighlights[prevColumn] = 1;
 					}
 					else if(row != prevRow){
-						inputHighlights[prevRow] = true;
+						inputHighlights[prevRow] = 2;
 					}
 					else{
-						promptsHighlights[prevColumn] = true;
+						promptsHighlights[prevColumn] = 3;
 					}
 				}
 				row = prevRow;
@@ -396,15 +417,15 @@ public class Keyboard{
 			}
 
 			while(row != 0){
-				inputHighlights[row-1] = true;
+				inputHighlights[row-1] = 2;
 				row--;
 			}
 
 			while(column != 0){
-				promptsHighlights[column-1] = true;
+				promptsHighlights[column-1] = 3;
 			}
 
-			boolean[][] highlights = new boolean[2][];
+			int[][] highlights = new int[2][];
 			highlights[0] = inputHighlights;
 			highlights[1] = promptsHighlights;
 			return highlights;
@@ -414,11 +435,12 @@ public class Keyboard{
 			//when mouse is released, tracing is ended. reset the letter state in the tmptlist
 			//change status
 			suggestedWords.removeAll();
+			window.setVisible(true);
 
 			PriorityQueue<Word> expectedWords = new PriorityQueue<Word>();
 			String finalWord = swiper.decideWordAfterSwipe(expectedWords);
 
-			float SentenceScore = swiper.scoreSentence(outputdisplay.getText().replace("_","").trim() + " " + finalWord);
+			//float SentenceScore = swiper.scoreSentence(outputdisplay.getText().replace("_","").trim() + " " + finalWord);
 
 			while (expectedWords.size() > 0)
 			{
@@ -443,17 +465,23 @@ public class Keyboard{
 								oldString = "";
 							}
 						}
-						outputdisplay.setText(oldString + buttonText + " _");
+						String newString = oldString + buttonText + " _";
+						outputdisplay.setText(newString);
 						suggestedWords.removeAll();
+						checkWords(newString.split(" "));
+						window.setVisible(true);
 					}
 				});
 				suggestedWords.add(current);
+				window.setVisible(true);
 			}
 
 			String newString;
 			String oldString = outputdisplay.getText();
 			newString = oldString.substring(0, oldString.length() - 1) + finalWord + " _";
 			outputdisplay.setText(newString);
+			String[] allWords = newString.split(" ");
+			checkWords(allWords);
 
 			swiper.swipedKeys.clear();
 			swiper.swipedKeysTime.clear();
@@ -482,7 +510,6 @@ public class Keyboard{
                 curKey = theEventer;
                 tracelist.add(theEventer);
                 tracing = true;
-                System.out.println("Entering Mouse tracing mode");
                 theEventer.PointList.add(e.getPoint());
             }
             else
