@@ -9,6 +9,7 @@ import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
 import javax.swing.text.Highlighter.HighlightPainter;
 import javax.swing.text.BadLocationException;
+import java.util.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -28,6 +29,7 @@ public class Keyboard{
 	JPanel board; //for loading buttons
 	JTextField input;
 	JTextField outputdisplay;
+    JTextField currmode;
 	Container panel;
 	JPanel suggestedWords;
 	MouseListener mouselistener;
@@ -43,7 +45,7 @@ public class Keyboard{
 	static Swiping swiper;
     static ArrDictionary_2 arrDict;
 
-	public Keyboard() throws FileNotFoundException{
+	public Keyboard(int mode) throws FileNotFoundException{
 		if(USE_CROSS_PLATFORM_UI) {
 			try {
 				UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
@@ -51,8 +53,12 @@ public class Keyboard{
 				e.printStackTrace();
 			}
 		}
+        String modeSt = "Keyboard: Defualt Mode";
+        if (mode == 1){
+            modeSt = "Keyboard: Turbo Mode";
+        }
 
-		window = new JFrame("keyboard");
+		window = new JFrame(modeSt);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setSize(600,400);
 
@@ -61,7 +67,8 @@ public class Keyboard{
 		Border border = BorderFactory.createEmptyBorder(0,10,20,10);
 		board.setBorder(border);
 		//infomation display
-
+     
+        
 		input = new JTextField("A QUICK BROWN FOX JUMPS OVER THE LAZY DOG");
 		input.setFont(new Font("Serif", Font.PLAIN, 16));
 		input.setBackground(new Color(237,237,237));
@@ -602,16 +609,24 @@ public class Keyboard{
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {
-        dict = new Dictionary();
+        int mode = 0;
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter keyboard mode, turbo or default:");
+        String m = sc.nextLine();
+        
+        if (m.equals("turbo")){
+            mode = 1;
+        }
+        
+        dict = new Dictionary(mode);
         trie = new TrieClass();
-        arrDict = new ArrDictionary_2();
-        // arrDict.getLetters(char f, char l) & returns a String of the possible letters
+        arrDict = new ArrDictionary_2(mode);
 
         for(String wordStr : dict.wtable)
         {
             trie.insert(wordStr);
         }
 		swiper = new Swiping(dict, trie,arrDict, ".\\model_bin.bin");
-        Keyboard gui = new Keyboard();
+        Keyboard gui = new Keyboard(mode);
 	}
 }
