@@ -26,7 +26,7 @@ public class Swiping
     ArrDictionary_2 arrDict;
     NgramLM lm = null;
 
-    int discardThreshold = 8;
+    int discardThreshold = 3;
     public HashMap<Character, Integer> swipedKeysTime = new HashMap<Character, Integer>();
     public ArrayList<Character> swipedKeys = new ArrayList<Character>();
 
@@ -35,7 +35,7 @@ public class Swiping
         dict = _dict;
         trie = _trie;
         arrDict = _arrDict;
-        readLM(NgramLMPath);
+        //readLM(NgramLMPath);
     }
 
     public void filterChars(ArrayList<Character> allCharsSwiped)
@@ -43,8 +43,11 @@ public class Swiping
 
     }
 
-    public String decideWordAfterSwipe(PriorityQueue<Word> expectedWords)
+    public String decideWordAfterSwipe(PriorityQueue<Word> expectedWords, String currentSentence)
     {
+        currentSentence = currentSentence.replace("_","");
+        currentSentence = currentSentence.trim();
+
         ArrayList<Character> currenChildren = trie.getCharChildren("");
         int index = 0;
         String finalWord = "";
@@ -76,7 +79,8 @@ public class Swiping
                     }
                 }
             }
-            ArrayList<ArrayList<Character>> allCombs = GetAllCombination(intermediateList, intermediateList.size());//, r);
+            ArrayList<ArrayList<Character>> allCombs = GetAllCombination(intermediateList,
+                    intermediateList.size(),arrDict.getWordLengthThreshold(swipedKeys.get(0),swipedKeys.get(n - 1)));//, r);
 
             //PriorityQueue<Word> expectedWords = new PriorityQueue<Word>();
             Character FirstChar = swipedKeys.get(0);
@@ -85,7 +89,10 @@ public class Swiping
             if (FirstWord.equals(trie.getMatchingPrefix(FirstWord)))
             {
                 Integer wordVal = swipedKeysTime.get(FirstChar) + swipedKeysTime.get(LastChar);
-                expectedWords.add(new Word(FirstWord, wordVal));
+
+                float SentenceScore = scoreSentence(currentSentence + " " + FirstWord);
+
+                expectedWords.add(new Word(FirstWord, wordVal * SentenceScore));
             }
 
             HashSet<String> currentAddedWords = new HashSet<String>();
@@ -106,7 +113,10 @@ public class Swiping
                     {
                         wordVal += swipedKeysTime.get(currentChr);
                     }
-                    expectedWords.add(new Word(currentWord.toString(), wordVal));
+
+                    float SentenceScore = scoreSentence(currentSentence + " " + currentWord.toString());
+
+                    expectedWords.add(new Word(currentWord.toString(), wordVal * SentenceScore));
                     currentAddedWords.add(currentWord.toString());
                 }
             }
@@ -131,13 +141,17 @@ public class Swiping
         outputdisplay.setText(newString);*/
     }
 
-    ArrayList<ArrayList<Character>> GetAllCombination(ArrayList<Character> arr, int n)//, int r)
+    ArrayList<ArrayList<Character>> GetAllCombination(ArrayList<Character> arr, int n, int wordLengthThreshold)//, int r)
     {
         ArrayList<ArrayList<Character>> allCombs = new ArrayList<ArrayList<Character>>();
         int Threshold = arr.size();
-        if (arr.size() > 13)
+        if (wordLengthThreshold == -1)
         {
-            Threshold = 13;
+            wordLengthThreshold = 13;
+        }
+        if (arr.size() > wordLengthThreshold)
+        {
+            Threshold = wordLengthThreshold;
         }
         for (int r = 1; r <= Threshold; r++)
         {
@@ -226,11 +240,17 @@ public class Swiping
 
     public float scoreSentence(String sentenceToScore)
     {
-        if (lm != null)
+        try
         {
-            float prob = lm.getSentenceProb(sentenceToScore.toLowerCase().split(" "));
-            return prob;
+            if (lm != null)
+            {
+                float prob = lm.getSentenceProb(sentenceToScore.toLowerCase().split(" "));
+                return prob;
+            }
+            return 1;
+        } catch(Exception e)
+        {
+            return 1;
         }
-        return 0;
     }
 }

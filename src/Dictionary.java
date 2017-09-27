@@ -12,6 +12,8 @@ public class Dictionary {
 	public ArrayList<String> wtable;
 	public ArrayList<Integer> ftable;
 
+	int frequencyThreshold = 45;
+
 	public Dictionary(int mode) throws FileNotFoundException {
 		System.out.println("Loading dictionary...");
 
@@ -30,8 +32,14 @@ public class Dictionary {
 		while(input.hasNext()){
 			buffer = input.nextLine();
 			Scanner scan = new Scanner(buffer).useDelimiter(",");
-			wtable.add(scan.next());
-			ftable.add(scan.nextInt());
+			String wordStr = scan.next();
+			int strValue = scan.nextInt();
+			if(strValue > frequencyThreshold)
+			{
+				wtable.add(wordStr);
+				ftable.add(strValue);
+			}
+
 		}
 
 		input.close();

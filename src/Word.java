@@ -1,9 +1,9 @@
 
 public class Word implements Comparable<Word> {
   public String word;
-  public int value;
+  public float value;
 
-	public Word(String word, int value) {
+	public Word(String word, float value) {
     this.word = word;
     this.value = value;
   }

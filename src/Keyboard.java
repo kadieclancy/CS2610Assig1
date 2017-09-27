@@ -239,76 +239,79 @@ public class Keyboard{
 			delete = new DefaultHighlighter.DefaultHighlightPainter(Color.red);
 		}
 
-		private void updateOutput (Key theEventer){
+		private void updateOutput (Key theEventer)
+		{
 			suggestedWords.removeAll();
 			window.setVisible(true);
-            for(Key pressedKey: keys)
-            {
-                if (pressedKey == null)
-                {
-                    continue;
-                }
-                pressedKey.setBackground(Color.white);
-            }
+			for (Key pressedKey : keys)
+			{
+				if (pressedKey == null)
+				{
+					continue;
+				}
+				pressedKey.setBackground(Color.white);
+			}
 
 			String theChar = theEventer.getText();
-            String newString = "";
-            if(theChar.equals("<--"))
-            {
-                String oldString = outputdisplay.getText();
-                if(oldString.length() == 1)
-                {
-                    newString = oldString;
-                }
-                else
-                {
-                    newString = oldString.substring(0, oldString.length() - 2) + "_";
-                }
-                outputdisplay.setText(newString);
-            }
-            else if (theChar.equals("<<"))
-            {
-            	String oldString = outputdisplay.getText();
-                if(outputdisplay.getText().lastIndexOf(' ') == -1)
-                {
-                    newString = "_";
-                }
-                else
-                {
-                    newString = oldString.substring(0, oldString.lastIndexOf(' ')) + "_";
-                }
-                outputdisplay.setText(newString);
-            }
-            else
-            {
-                String oldString = outputdisplay.getText();
-                newString = oldString.substring(0, oldString.length() - 1) + theChar + "_";
-                outputdisplay.setText(newString);
-            }
-            String[] allWords = newString.split(" ");
-            String currentPrefix = allWords[allWords.length-1].replace("_","");
-						checkWords(allWords);
-            if(currentPrefix.equals(" ") || currentPrefix.equals(""))
-						{
-							return;
-						}
-            ArrayList<Character> nextChars = trie.getCharChildren(currentPrefix);
+			String newString = "";
+			if (theChar.equals("<--"))
+			{
+				String oldString = outputdisplay.getText();
+				if (oldString.length() == 1)
+				{
+					newString = oldString;
+				}
+				else
+				{
+					newString = oldString.substring(0, oldString.length() - 2) + "_";
+				}
+				outputdisplay.setText(newString);
+			}
+			else if (theChar.equals("<<"))
+			{
+				String oldString = outputdisplay.getText();
+				if (outputdisplay.getText().lastIndexOf(' ') == -1)
+				{
+					newString = "_";
+				}
+				else
+				{
+					newString = oldString.substring(0, oldString.lastIndexOf(' ')) + "_";
+				}
+				outputdisplay.setText(newString);
+			}
+			else
+			{
+				String oldString = outputdisplay.getText();
+				newString = oldString.substring(0, oldString.length() - 1) + theChar + "_";
+				outputdisplay.setText(newString);
+			}
+			String[] allWords = newString.split(" ");
+			String currentPrefix = allWords[allWords.length - 1].replace("_", "");
 
-            for(Key pressedKey: keys)
-            {
-                if (pressedKey == null)
-                {
-                    continue;
-                }
-                if (pressedKey.getText().length() == 1 && !pressedKey.getText().equals(" "))
-                {
-                    Character keyName = pressedKey.getText().charAt(0);
-                    if (nextChars.contains(keyName))
-                    {
-                        pressedKey.setBackground(new Color(102, 178, 225));
-                    }
-                }
-            }
+			//checkWords(allWords);
+
+			if (currentPrefix.equals(" ") || currentPrefix.equals(""))
+			{
+				return;
+			}
+			ArrayList<Character> nextChars = trie.getCharChildren(currentPrefix);
+
+			for (Key pressedKey : keys)
+			{
+				if (pressedKey == null)
+				{
+					continue;
+				}
+				if (pressedKey.getText().length() == 1 && !pressedKey.getText().equals(" "))
+				{
+					Character keyName = pressedKey.getText().charAt(0);
+					if (nextChars.contains(keyName))
+					{
+						pressedKey.setBackground(new Color(102, 178, 225));
+					}
+				}
+			}
 		}
 
 		public void checkWords(String[] allWords){
@@ -445,9 +448,8 @@ public class Keyboard{
 			window.setVisible(true);
 
 			PriorityQueue<Word> expectedWords = new PriorityQueue<Word>();
-			String finalWord = swiper.decideWordAfterSwipe(expectedWords);
+			String finalWord = swiper.decideWordAfterSwipe(expectedWords, outputdisplay.getText());
 
-			//float SentenceScore = swiper.scoreSentence(outputdisplay.getText().replace("_","").trim() + " " + finalWord);
 
 			while (expectedWords.size() > 0)
 			{
@@ -475,7 +477,7 @@ public class Keyboard{
 						String newString = oldString + buttonText + " _";
 						outputdisplay.setText(newString);
 						suggestedWords.removeAll();
-						checkWords(newString.split(" "));
+						//checkWords(newString.split(" "));
 						window.setVisible(true);
 					}
 				});
@@ -488,7 +490,7 @@ public class Keyboard{
 			newString = oldString.substring(0, oldString.length() - 1) + finalWord + " _";
 			outputdisplay.setText(newString);
 			String[] allWords = newString.split(" ");
-			checkWords(allWords);
+			//checkWords(allWords);
 
 			swiper.swipedKeys.clear();
 			swiper.swipedKeysTime.clear();

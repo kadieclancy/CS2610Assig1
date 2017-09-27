@@ -9,9 +9,10 @@ import java.util.*;
 
 public class ArrDictionary_2
 {
-	public String[] arrDict = new String[17805];
-	public String[][] table = new String[28][28];
 	public HashMap<String,HashSet<Character>> PossibleChars = new HashMap<String,HashSet<Character>>();
+	public HashMap<String,Integer> lengthThreshold = new HashMap<String,Integer>();
+
+	int frequencyThreshold = 45;
 
 	public ArrDictionary_2(int mode) throws FileNotFoundException {
 		int count = 0;
@@ -29,6 +30,11 @@ public class ArrDictionary_2
 			buffer = input.nextLine();
 			Scanner scan = new Scanner(buffer).useDelimiter(",");
 			String currentWord = scan.next();
+			int strValue = scan.nextInt();
+			if(strValue < frequencyThreshold)
+			{
+				continue;
+			}
 			char[] allChars = currentWord.toCharArray();
 			if (allChars.length > 2)
 			{
@@ -58,6 +64,20 @@ public class ArrDictionary_2
 					}
 					PossibleChars.put(strkey,currentchars);
 				}
+
+				int wordLength = allChars.length - 2;
+				if(lengthThreshold.containsKey(strkey))
+				{
+					int oldVal = lengthThreshold.get(strkey);
+					if(wordLength > oldVal)
+					{
+						lengthThreshold.replace(strkey, wordLength);
+					}
+				}
+				else
+				{
+					lengthThreshold.put(strkey, wordLength);
+				}
 			}
 		}
 		input.close();
@@ -80,6 +100,16 @@ public class ArrDictionary_2
 			return new HashSet<Character>();
 		}
     }
-    
 
+	public int getWordLengthThreshold(char first, char last) {
+		String strKey = first+"_"+last;
+		if(PossibleChars.containsKey(strKey))
+		{
+			return lengthThreshold.get(strKey);
+		}
+		else
+		{
+			return -1;
+		}
+	}
 }
