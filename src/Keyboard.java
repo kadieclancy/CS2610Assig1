@@ -67,8 +67,8 @@ public class Keyboard{
 		Border border = BorderFactory.createEmptyBorder(0,10,20,10);
 		board.setBorder(border);
 		//infomation display
-     
-        
+
+
 		input = new JTextField("A QUICK BROWN FOX JUMPS OVER THE LAZY DOG");
 		input.setFont(new Font("Serif", Font.PLAIN, 16));
 		input.setBackground(new Color(237,237,237));
@@ -289,7 +289,7 @@ public class Keyboard{
 			String[] allWords = newString.split(" ");
 			String currentPrefix = allWords[allWords.length - 1].replace("_", "");
 
-			//checkWords(allWords);
+			checkWords(allWords);
 
 			if (currentPrefix.equals(" ") || currentPrefix.equals(""))
 			{
@@ -433,6 +433,7 @@ public class Keyboard{
 
 			while(column != 0){
 				promptsHighlights[column-1] = 3;
+				column--;
 			}
 
 			int[][] highlights = new int[2][];
@@ -477,7 +478,7 @@ public class Keyboard{
 						String newString = oldString + buttonText + " _";
 						outputdisplay.setText(newString);
 						suggestedWords.removeAll();
-						//checkWords(newString.split(" "));
+						checkWords(newString.split(" "));
 						window.setVisible(true);
 					}
 				});
@@ -490,7 +491,7 @@ public class Keyboard{
 			newString = oldString.substring(0, oldString.length() - 1) + finalWord + " _";
 			outputdisplay.setText(newString);
 			String[] allWords = newString.split(" ");
-			//checkWords(allWords);
+			checkWords(allWords);
 
 			swiper.swipedKeys.clear();
 			swiper.swipedKeysTime.clear();
@@ -615,11 +616,11 @@ public class Keyboard{
         Scanner sc = new Scanner(System.in);
         System.out.println("Enter keyboard mode, turbo or default:");
         String m = sc.nextLine();
-        
+
         if (m.equals("turbo")){
             mode = 1;
         }
-        
+
         dict = new Dictionary(mode);
         trie = new TrieClass();
         arrDict = new ArrDictionary_2(mode);
