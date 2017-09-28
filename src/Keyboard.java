@@ -88,7 +88,7 @@ public class Keyboard{
 		highlighterPrompt = input.getHighlighter();
 		mouselistener = new MouseListener();
 
-		Border title3 = BorderFactory.createTitledBorder("Suggested Words: ");
+		Border title3 = BorderFactory.createTitledBorder("Suggested Words Based on the Current Context: ");
 		Border title2 = BorderFactory.createTitledBorder("Output: ");
 		Border border5 = BorderFactory.createEmptyBorder(20,10,20,10);
 		Border border6 = BorderFactory.createEmptyBorder(10,9,10,9);
