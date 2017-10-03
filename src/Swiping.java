@@ -35,7 +35,7 @@ public class Swiping
         dict = _dict;
         trie = _trie;
         arrDict = _arrDict;
-        //readLM(NgramLMPath);
+        readLM(NgramLMPath);
     }
 
     public void filterChars(ArrayList<Character> allCharsSwiped)
@@ -234,7 +234,7 @@ public class Swiping
         } catch (IOException e)
         {
             System.err.println("Problem reading model from file " + path + ": " + e.getMessage());
-            System.exit(1);
+           // System.exit(1);
         }
     }
 
