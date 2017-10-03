@@ -13,3 +13,6 @@ java Keyboard
 The prebuilt .jar file can be found in this package or you can download it from this link.
 make sure the wordf.txt is in the same folder as the .jar file
 https://github.com/kadieclancy/CS2610Assig1
+
+Group Names:
+Spencer Gray, Kadie Clancy, Ahmed Magooda
