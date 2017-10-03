@@ -1,6 +1,10 @@
 # CS2610Assig1
 CS2610 Assignment 1 - Virtual Keyboarding
 
+Group Names:
+Spencer Gray, Kadie Clancy, Ahmed Magooda
+
+
 How to build the application:
 Just use java command to compile all .java files
 
@@ -19,5 +23,4 @@ make sure the wordf.txt is in the same folder as the .jar file
 
 
 
-Group Names:
-Spencer Gray, Kadie Clancy, Ahmed Magooda
+Report will be sent separatly.
